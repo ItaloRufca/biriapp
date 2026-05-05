@@ -1,24 +1,21 @@
-//
-//  ContentView.swift
-//  Biriapp
-//
-//  Created by Aretê Colors on 23/04/26.
-//
-
 import SwiftUI
 
 struct ContentView: View {
+    @EnvironmentObject private var session: AppSession
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        Group {
+            if session.isAuthenticated {
+                MainTabView()
+            } else {
+                LoginView()
+            }
         }
-        .padding()
+        .animation(.easeInOut(duration: 0.2), value: session.isAuthenticated)
     }
 }
 
 #Preview {
     ContentView()
+        .environmentObject(AppSession())
 }

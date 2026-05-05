@@ -1,17 +1,13 @@
-//
-//  BiriappApp.swift
-//  Biriapp
-//
-//  Created by Aretê Colors on 23/04/26.
-//
-
 import SwiftUI
 
 @main
 struct BiriappApp: App {
+    @StateObject private var session = AppSession()
+
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(session)
         }
     }
 }
