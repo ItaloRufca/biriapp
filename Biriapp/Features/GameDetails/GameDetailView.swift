@@ -32,7 +32,7 @@ struct GameDetailView: View {
                     .padding(16)
             }
         }
-        .background(Color(.systemGray6))
+        .premiumBackground()
         .navigationTitle(game.name)
         .navigationBarTitleDisplayMode(.inline)
         .task {
@@ -64,7 +64,7 @@ struct GameDetailView: View {
                     .scaledToFit()
             } placeholder: {
                 Rectangle()
-                    .fill(Color(.systemGray5))
+                    .fill(AppTheme.accentSoft)
             }
             .frame(width: 230, height: 300)
             .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
@@ -77,11 +77,11 @@ struct GameDetailView: View {
         VStack(alignment: .leading, spacing: 2) {
             Text(detail.name)
                 .font(.system(size: 46, weight: .bold))
-                .foregroundStyle(Color(.label))
+                .foregroundStyle(AppTheme.ink)
 
             Text("(\(yearText(detail)))")
                 .font(.title2.weight(.medium))
-                .foregroundStyle(Color(.secondaryLabel))
+                .foregroundStyle(AppTheme.subInk)
         }
     }
 
@@ -99,8 +99,8 @@ struct GameDetailView: View {
                 .font(.headline)
             }
             .buttonStyle(.borderedProminent)
-            .tint(Color(.systemGray5))
-            .foregroundStyle(Color(.secondaryLabel))
+            .tint(AppTheme.accentSoft)
+            .foregroundStyle(AppTheme.ink)
 
             Button {
                 Task { await toggleWishlist() }
@@ -127,7 +127,11 @@ struct GameDetailView: View {
             statItem(icon: "trophy", title: "Rank", value: "#\(game.rank)")
         }
         .padding(14)
-        .background(Color(.systemBackground))
+        .background(AppTheme.cardBackground)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(AppTheme.cardBorder, lineWidth: 1)
+        )
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
@@ -138,10 +142,10 @@ struct GameDetailView: View {
                 .foregroundStyle(.pink)
             Text(title)
                 .font(.subheadline)
-                .foregroundStyle(Color(.secondaryLabel))
+                .foregroundStyle(AppTheme.subInk)
             Text(value)
                 .font(.headline.weight(.bold))
-                .foregroundStyle(Color(.label))
+                .foregroundStyle(AppTheme.ink)
         }
         .frame(maxWidth: .infinity)
     }
@@ -155,6 +159,15 @@ struct GameDetailView: View {
                     Text("Sobre o Jogo")
                         .font(.title2.weight(.bold))
                     Spacer()
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text("Média: \(String(format: "%.2f", game.communityRating))")
+                            .font(.caption.weight(.bold))
+                            .foregroundStyle(AppTheme.subInk)
+                        Text("\(game.ratingCount) avaliações")
+                            .font(.caption2)
+                            .foregroundStyle(AppTheme.subInk)
+                    }
+                    Spacer().frame(width: 8)
                     Button {
                         isShowingRatingOptions = true
                     } label: {
@@ -167,7 +180,7 @@ struct GameDetailView: View {
 
                 Text(text)
                     .font(.body)
-                    .foregroundStyle(Color(.secondaryLabel))
+                    .foregroundStyle(AppTheme.subInk)
                     .lineSpacing(3)
             }
         }

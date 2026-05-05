@@ -47,6 +47,18 @@ Arquivo:
 python3 -u /Volumes/HD_Ext_Ital/Board/App/Biriapp/Biriapp/Support/Scripts/sync_carteados_supabase.py
 ```
 
+Comando completo (igual você já usa no terminal):
+
+```bash
+pip3 install requests
+export SUPABASE_URL="https://cgggviihmznmcitwtsoa.supabase.co"
+export SUPABASE_SERVICE_ROLE_KEY="SUA_SERVICE_ROLE_KEY"
+export CSV_PATH="/Volumes/HD_Ext_Ital/Board/App/Biriapp/carteados.csv"
+python3 -u /Volumes/HD_Ext_Ital/Board/App/Biriapp/Biriapp/Support/Scripts/sync_carteados_supabase.py
+```
+
+Esse script é idempotente: se o CSV atualizar, pode rodar de novo. Ele insere o que falta e atualiza metadados conforme a configuração (`ONLY_FILL_EMPTY`).
+
 ### Modos
 
 Padrão (`ONLY_FILL_EMPTY=1`): só preenche campos vazios.

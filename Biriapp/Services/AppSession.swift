@@ -32,28 +32,51 @@ final class AppSession: ObservableObject {
             return updated
         }
     }
+    
+    private var knownGameByID: [String: Game] {
+        Dictionary(uniqueKeysWithValues: allKnownGames.map { ($0.id, $0) })
+    }
+    
+    private func hydratedGame(for gameID: String) -> Game {
+        if var existing = knownGameByID[gameID] {
+            existing.userRating = ratingsByGameID[gameID]
+            return existing
+        }
+        
+        return Game(
+            id: gameID,
+            name: "Jogo",
+            rank: 0,
+            imageURL: nil,
+            category: "Carteado",
+            playersRange: "-",
+            communityRating: 0,
+            ratingCount: 0,
+            userRating: ratingsByGameID[gameID]
+        )
+    }
 
     var collectionGames: [Game] {
-        allKnownGames
-            .filter { collectionGameIDs.contains($0.id) }
+        collectionGameIDs
+            .map(hydratedGame)
             .sorted { $0.name < $1.name }
     }
 
     var wishlistGames: [Game] {
-        allKnownGames
-            .filter { wishlistGameIDs.contains($0.id) }
+        wishlistGameIDs
+            .map(hydratedGame)
             .sorted { $0.name < $1.name }
     }
 
     var favoriteGames: [Game] {
-        allKnownGames
-            .filter { favoriteGameIDs.contains($0.id) }
+        favoriteGameIDs
+            .map(hydratedGame)
             .sorted { $0.name < $1.name }
     }
 
     var ratedGames: [Game] {
-        allKnownGames
-            .filter { ratingsByGameID[$0.id] != nil }
+        ratingsByGameID.keys
+            .map(hydratedGame)
             .sorted { ($0.userRating ?? 0) > ($1.userRating ?? 0) }
     }
 
@@ -360,18 +383,23 @@ final class AppSession: ObservableObject {
     }
 
     private func refreshRemoteData(for user: User) async throws {
-        async let profileTask: [ProfileRow] = fetchProfile(userID: user.id)
-        async let catalogTask: [CatalogGameRow] = fetchCatalogGames()
-        async let rankingTask: [RankingRow] = fetchGamesRanking(days: nil)
-        async let reviewersTask: [ReviewerRankingRow] = fetchReviewersRanking(days: nil)
-        async let ratingsTask: [UserRatingRow] = fetchRatings(userID: user.id)
-        async let collectionTask: [SimpleRelationRow] = fetchSimpleRelation(table: "collection_items", userID: user.id)
-        async let wishlistTask: [SimpleRelationRow] = fetchSimpleRelation(table: "wishlist_items", userID: user.id)
-        async let favoritesTask: [SimpleRelationRow] = fetchSimpleRelation(table: "favorites", userID: user.id)
+        async let profileTask = try? fetchProfile(userID: user.id)
+        async let catalogTask = try? fetchCatalogGames()
+        async let rankingTask = try? fetchGamesRanking(days: nil)
+        async let reviewersTask = try? fetchReviewersRanking(days: nil)
+        async let ratingsTask = try? fetchRatings(userID: user.id)
+        async let collectionTask = try? fetchSimpleRelation(table: "collection_items", userID: user.id)
+        async let wishlistTask = try? fetchSimpleRelation(table: "wishlist_items", userID: user.id)
+        async let favoritesTask = try? fetchSimpleRelation(table: "favorites", userID: user.id)
 
-        let (profileRows, catalogRows, rankingRows, reviewerRows, ratingRows, collectionRows, wishlistRows, favoriteRows) = try await (
-            profileTask, catalogTask, rankingTask, reviewersTask, ratingsTask, collectionTask, wishlistTask, favoritesTask
-        )
+        let profileRows = await profileTask ?? []
+        let catalogRows = await catalogTask ?? []
+        let rankingRows = await rankingTask ?? []
+        let reviewerRows = await reviewersTask ?? []
+        let ratingRows = await ratingsTask ?? []
+        let collectionRows = await collectionTask ?? []
+        let wishlistRows = await wishlistTask ?? []
+        let favoriteRows = await favoritesTask ?? []
 
         if let profile = profileRows.first {
             username = profile.username ?? username
@@ -407,7 +435,7 @@ final class AppSession: ObservableObject {
                 imageURL: URL(string: row.imageURL ?? ""),
                 category: "Carteado",
                 playersRange: playersRange,
-                communityRating: row.avgRating ?? 0,
+                communityRating: row.weightedRating ?? row.avgRating ?? 0,
                 ratingCount: row.ratingCount ?? 0,
                 userRating: ratingsByGameID[row.gameID]
             )
@@ -419,7 +447,7 @@ final class AppSession: ObservableObject {
     }
 
     private func reloadRankings() async throws {
-        let rankingRows: [RankingRow] = try await fetchGamesRanking(days: nil)
+        let rankingRows: [RankingRow] = (try? await fetchGamesRanking(days: nil)) ?? []
         rankedGames = rankingRows.enumerated().map { index, row in
             let playersRange: String = {
                 switch (row.minPlayers, row.maxPlayers) {
@@ -436,7 +464,7 @@ final class AppSession: ObservableObject {
                 imageURL: URL(string: row.imageURL ?? ""),
                 category: "Carteado",
                 playersRange: playersRange,
-                communityRating: row.avgRating ?? 0,
+                communityRating: row.weightedRating ?? row.avgRating ?? 0,
                 ratingCount: row.ratingCount ?? 0,
                 userRating: ratingsByGameID[row.gameID]
             )
@@ -700,6 +728,7 @@ private struct RankingRow: Decodable {
     let minPlayers: Int?
     let maxPlayers: Int?
     let avgRating: Double?
+    let weightedRating: Double?
     let ratingCount: Int?
     let rankPosition: Int64?
 
@@ -710,6 +739,7 @@ private struct RankingRow: Decodable {
         case minPlayers = "min_players"
         case maxPlayers = "max_players"
         case avgRating = "avg_rating"
+        case weightedRating = "weighted_rating"
         case ratingCount = "rating_count"
         case rankPosition = "rank_position"
     }

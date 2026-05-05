@@ -1,14 +1,14 @@
 import SwiftUI
 
 enum AppTheme {
-    static var accent: Color { Color(red: 0.1, green: 0.42, blue: 0.87) }
-    static var accentSoft: Color { Color(red: 0.9, green: 0.94, blue: 1.0) }
-    static var ink: Color { Color(red: 0.12, green: 0.15, blue: 0.22) }
-    static var subInk: Color { Color(red: 0.4, green: 0.45, blue: 0.56) }
+    static var accent: Color { Color(red: 0.24, green: 0.49, blue: 0.96) }
+    static var accentSoft: Color { Color(uiColor: .secondarySystemBackground) }
+    static var ink: Color { Color(uiColor: .label) }
+    static var subInk: Color { Color(uiColor: .secondaryLabel) }
 
-    static var pageBackground: Color { Color(red: 0.97, green: 0.98, blue: 1.0) }
-    static var cardBackground: Color { .white }
-    static var cardBorder: Color { Color.black.opacity(0.05) }
+    static var pageBackground: Color { Color(uiColor: .systemGroupedBackground) }
+    static var cardBackground: Color { Color(uiColor: .secondarySystemGroupedBackground) }
+    static var cardBorder: Color { Color(uiColor: .separator).opacity(0.35) }
 }
 
 struct PremiumBackground: ViewModifier {
@@ -34,7 +34,7 @@ struct PremiumCard: ViewModifier {
 struct PremiumPanel: ViewModifier {
     func body(content: Content) -> some View {
         content
-            .background(Color.white.opacity(0.9))
+            .background(Color(uiColor: .tertiarySystemGroupedBackground))
             .overlay(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .stroke(AppTheme.cardBorder, lineWidth: 1)
